@@ -21,24 +21,51 @@ function App() {
     setTodos(data.todos);
   }
 
-  const handleAddTodo = () => {
-    setTodos([
-      ...todos,
-      {
-        id: todos.length + 1,
-        title: title,
-        completed: false,
-      },
-    ]);
-    setTitle("");
+
+  const handleAddTodo = async () => {
+
+    try {
+      const response = await fetch("http://localhost:3000/todos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: title,
+        })
+      });
+      if (!response.ok) {
+        throw new Error("登録に失敗しました")
+      }
+      setTitle("");
+      await fetchTodos();
+    }catch(e) {
+      console.error("Error creating todo", e);
+    }
+
   };
 
-  const handleToggleTodo = (id: number) => {
-    setTodos(
-      todos.map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo,
-      ),
-    );
+  const handleToggleTodo = async (id: number) => {
+    const todo = todos.find((todo) => todo.id === id)
+    if(!todo) return;
+    try {
+      const response = await fetch(`http://localhost:3000/todos/${id}`,{
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          completed: !todo.completed,
+        })
+      })
+      if(!response.ok) {
+        throw new Error("更新に失敗しました");
+      }
+      await fetchTodos();
+    }catch(e) {
+      console.error("Error uodate todo", e);
+    }
+
   };
 
   return (
