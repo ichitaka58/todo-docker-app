@@ -1,22 +1,60 @@
+# Docker Composeのバージョン指定。3.8は一般的に広く使われています。
 version: '3.8'
 
+# アプリケーションを構成する各サービス（コンテナ）の定義
 services:
+  # フロントエンド（React/Viteなど）のサービス定義
   client:
+    # カレントディレクトリ（.）のDockerfileを使用してイメージをビルドします
     build: .
-    container_name: my-container
+    # ホスト側のポート5173とコンテナ側のポート5173をマッピングします
     ports:
       - "5173:5173"
+    # apiサービスが起動した後にこのサービスを起動します
     depends_on:
       - api
+    # ホスト側のディレクトリをコンテナ内にマウントします
     volumes:
+      # カレントディレクトリをコンテナの/appにマウント（ホットリロード用）
       - .:/app
+      # コンテナ内の/app/node_modulesをホスト側で上書きしないように匿名ボリューム化
       - /app/node_modules
 
+  # バックエンドAPI（Node.jsなど）のサービス定義
   api:
+    # todo-apiディレクトリのDockerfileを使用してイメージをビルドします
     build: ./todo-api
-    container_name: api
+    # ホスト側のポート3000とコンテナ側のポート3000をマッピングします
     ports:
       - "3000:3000"
+    # dbサービスが起動した後にこのサービスを起動します
+    depends_on:
+      - db
+    # ホスト側のディレクトリをコンテナ内にマウントします
     volumes:
+      # ./todo-apiディレクトリをコンテナの/appにマウント（ホットリロード用）
       - ./todo-api:/app
+      # コンテナ内の/app/node_modulesをホスト側で上書きしないように匿名ボリューム化
       - /app/node_modules
+  
+  # データベース（PostgreSQL）のサービス定義
+  db:
+    # PostgreSQL 16の軽量なAlpineベースの公式イメージを使用します
+    image: postgres:16-alpine
+    # データベースの初期設定（環境変数）
+    environment:
+      POSTGRES_USER: todo_user     # データベースのユーザー名
+      POSTGRES_PASSWORD: password  # データベースのパスワード
+      POSTGRES_DB: todo_db         # 作成するデータベース名
+    # ホスト側のポート5432とコンテナ側のポート5432をマッピングします
+    ports:
+      - "5432:5432"
+    # データベースのデータを永続化するためのボリューム設定
+    volumes:
+      # 名前付きボリューム(postgres_data)をコンテナのデータ保存領域にマウント
+      - postgres_data:/var/lib/postgresql/data
+
+# データの永続化に使用する名前付きボリュームの定義
+volumes:
+  # dbサービスで使用するボリューム。コンテナを再作成してもデータが保持されます
+  postgres_data:
