@@ -1,5 +1,6 @@
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
+import { cors } from 'hono/cors'
 
 const app = new Hono()
 
@@ -10,6 +11,12 @@ interface Todo {
 }
 
 const todos: Todo[] = []
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+  })
+)
 
 app.get('/', (c) => {
   return c.text('Hello Hono!')
@@ -34,7 +41,7 @@ app.put("/todos/:id", async (c) => {
   const { id } = c.req.param();
   const { completed } = await c.req.json();
   const todo = todos.find((todo) => todo.id === Number(id));
-  if(!todo) {
+  if (!todo) {
     return c.notFound();
   }
   todo.completed = completed;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 
 type Todo = {
@@ -9,23 +9,17 @@ type Todo = {
 
 function App() {
   const [title, setTitle] = useState<string>("");
-  const [todos, setTodos] = useState<Todo[]>([
-    {
-      id: 1,
-      title: "Todo 1",
-      completed: false,
-    },
-    {
-      id: 2,
-      title: "Todo 2",
-      completed: false,
-    },
-    {
-      id: 3,
-      title: "Todo 3",
-      completed: false,
-    },
-  ]);
+  const [todos, setTodos] = useState<Todo[]>([]);
+
+  useEffect(() => {
+    fetchTodos();
+  }, []);
+
+  const fetchTodos = async () => {
+    const response = await fetch("http://localhost:3000/todos");
+    const data = await response.json();
+    setTodos(data.todos);
+  }
 
   const handleAddTodo = () => {
     setTodos([
@@ -52,7 +46,7 @@ function App() {
       <div className="max-w-md mx-auto">
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">
-            📝 Todoアプリ！
+            📝 Todoアプリ
           </h1>
           <div className="flex gap-2 mb-6">
             <input
