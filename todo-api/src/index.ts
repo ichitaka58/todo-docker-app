@@ -1,16 +1,11 @@
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
+import { PrismaClient } from './generated/prisma/client.js'
 
 const app = new Hono()
 
-interface Todo {
-  id: number
-  title: string
-  completed: boolean
-}
-
-const todos: Todo[] = []
+const prisma = new PrismaClient()
 
 app.use(
   cors({
@@ -22,30 +17,59 @@ app.get('/', (c) => {
   return c.text('Hello Hono!')
 })
 
-app.get('/todos', (c) => {
-  return c.json({ todos });
+
+app.get('/todos', async (c) => {
+  try {
+    const todos = await prisma.todo.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+    })
+    return c.json({ todos });
+  } catch (error) {
+    console.error("Error fetching todos:", error);
+    return c.json({ error: "Failed to fetch todos" }, 500);
+  }
 })
 
+
 app.post("/todos", async (c) => {
-  const { title } = await c.req.json();
-  const todo: Todo = {
-    id: todos.length + 1,
-    title,
-    completed: false,
+  try {
+    const { title } = await c.req.json();
+    if (!title || title.trim() === "") {
+      return c.json({ error: "Title is required" }, 400);
+    }
+    const todo = await prisma.todo.create({
+      data: {
+        title,
+        completed: false,
+      },
+
+    });
+    return c.json({ todo }, 201);
+  } catch (error) {
+    console.error("Error creating todo:", error);
+    return c.json({ error: "Failed to create todo" }, 500);
   }
-  todos.push(todo);
-  return c.json({ todo }, 201);
 })
 
 app.put("/todos/:id", async (c) => {
-  const { id } = c.req.param();
-  const { completed } = await c.req.json();
-  const todo = todos.find((todo) => todo.id === Number(id));
-  if (!todo) {
-    return c.notFound();
+  try {
+    const { id } = c.req.param();
+    const { completed } = await c.req.json();
+    if(!id || typeof completed !== "boolean") {
+      return c.json({ error: "Invalid request" }, 400);
+    }
+    const todo = await prisma.todo.update({
+      where: { id: Number(id)},
+      data: { completed: completed},
+    });
+    return c.json({ todo });
+  } catch (error) {
+    console.error("Error updating todo:", error);
+    return c.json({ error: "Failed to update todo" }, 500); 
   }
-  todo.completed = completed;
-  return c.json({ todo });
+
 })
 
 serve({
