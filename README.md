@@ -1,73 +1,43 @@
-# React + TypeScript + Vite
+# Todo Docker App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+個人のDocker学習用のTodoアプリケーションです。
 
-Currently, two official plugins are available:
+## 技術スタック / アーキテクチャ
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+本アプリは以下の技術を用いて構築されています。
 
-## React Compiler
+### フロントエンド
+- **React** (UIライブラリ)
+- **Vite** (ビルドツール)
+- **Tailwind CSS v4** (スタイリング)
+- **TypeScript**
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### バックエンド (API)
+- **Hono** (Webフレームワーク)
+- **Node.js** (実行環境として `@hono/node-server` を利用)
+- **Prisma** (ORM)
+- **TypeScript**
 
-## Expanding the ESLint configuration
+### データベース・インフラ
+- **PostgreSQL** (リレーショナルデータベース)
+- **Docker / Docker Compose** (コンテナ環境)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 起動方法
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Docker Composeを使ってすべてのコンテナを立ち上げます。
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+docker-compose up -d
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+起動後、以下のURLからアクセスできます。
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- フロントエンド: [http://localhost:5173](http://localhost:5173)
+- バックエンド(API): [http://localhost:3000](http://localhost:3000)
+- Prisma Studio: [http://localhost:5555](http://localhost:5555)
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## 停止方法
+
+```bash
+docker-compose down
 ```
