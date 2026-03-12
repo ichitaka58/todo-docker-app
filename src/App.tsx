@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import "./App.css";
 
 type Todo = {
   id: number;
@@ -63,9 +62,29 @@ function App() {
       }
       await fetchTodos();
     }catch(e) {
-      console.error("Error uodate todo", e);
+      console.error("Error update todo", e);
     }
 
+  };
+
+  const handleDeleteTodo = async (id: number) => {
+    const todo = todos.find((todo) => todo.id === id)
+    if(!todo) return;
+    if(!confirm("このTodoを削除しますか？")) return;
+    try {
+      const response = await fetch(`http://localhost:3000/todos/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        }
+      });
+      if(!response.ok) {
+        throw new Error("削除に失敗しました");
+      }
+      await fetchTodos();
+    } catch (e) {
+      console.error("Error deleting todo", e);
+    }
   };
 
   return (
@@ -100,21 +119,28 @@ function App() {
           ) : (
             <ul className="space-y-3">
               {todos.map((todo) => (
-                <li
-                  key={todo.id}
-                  className={`flex items-center gap-3 p-3 rounded-lg border transition-all duration-200 ${todo.completed ? "bg-gray-50 border-gray-200" : "bg-white border-gray-300 hover:border-blue-300"}`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={todo.completed}
-                    onChange={() => handleToggleTodo(todo.id)}
-                    className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-                  />
-                  <span
-                    className={`flex-1 ${todo.completed ? "line-through text-gray-500" : "text-gray-800"}`}
+                <li key={todo.id} className="flex gap-2">
+                  <div
+                    className={`flex-1 flex items-center gap-3 p-3 rounded-lg border transition-all duration-200 ${todo.completed ? "bg-gray-50 border-gray-200" : "bg-white border-gray-300 hover:border-blue-300"}`}
                   >
-                    {todo.title}
-                  </span>
+                    <input
+                      type="checkbox"
+                      checked={todo.completed}
+                      onChange={() => handleToggleTodo(todo.id)}
+                      className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                    />
+                    <span
+                      className={`flex-1 ${todo.completed ? "line-through text-gray-500" : "text-gray-800"}`}
+                    >
+                      {todo.title}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteTodo(todo.id)}
+                    className="border border-gray-200 rounded-lg px-2 bg-pink-200 hover:bg-pink-300"
+                  >
+                    削除
+                  </button>
                 </li>
               ))}
             </ul>
